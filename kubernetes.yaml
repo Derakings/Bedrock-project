@@ -17,9 +17,11 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: catalog-db
-data:
-  RETAIL_CATALOG_PERSISTENCE_USER: "Y2F0YWxvZw=="
-  RETAIL_CATALOG_PERSISTENCE_PASSWORD: "VUQwN3hiTGt0Z093dlhKMg=="
+type: Opaque
+stringData:
+  RETAIL_CATALOG_PERSISTENCE_USER: "${CATALOG_DB_USER}"
+  RETAIL_CATALOG_PERSISTENCE_PASSWORD: "${CATALOG_DB_PASSWORD}"
+
 ---
 # Source: retail-store-sample-catalog-chart/templates/configmap.yml
 apiVersion: v1
@@ -28,8 +30,10 @@ metadata:
   name: catalog
 data:
   RETAIL_CATALOG_PERSISTENCE_PROVIDER: mysql
-  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: catalog-mysql:3306
   RETAIL_CATALOG_PERSISTENCE_DB_NAME: catalog
+  RETAIL_CATALOG_PERSISTENCE_HOST: "${CATALOG_DB_HOST}"
+  RETAIL_CATALOG_PERSISTENCE_PORT: "${CATALOG_DB_PORT}"
+
 ---
 # Source: retail-store-sample-catalog-chart/templates/mysql-service.yaml
 apiVersion: v1
@@ -130,7 +134,7 @@ spec:
           securityContext:
             capabilities:
               drop:
-              - ALL
+                - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
@@ -214,8 +218,8 @@ spec:
               containerPort: 3306
               protocol: TCP
       volumes:
-      - name: data
-        emptyDir: {}
+        - name: data
+          emptyDir: {}
 
 ---
 # Source: retail-store-sample-cart-chart/templates/serviceaccount.yaml
@@ -238,11 +242,10 @@ metadata:
   name: carts
 data:
   RETAIL_CART_PERSISTENCE_PROVIDER: dynamodb
-  RETAIL_CART_PERSISTENCE_DYNAMODB_TABLE_NAME: Items
-  RETAIL_CART_PERSISTENCE_DYNAMODB_CREATE_TABLE: "true"
-  AWS_ACCESS_KEY_ID: key
-  AWS_SECRET_ACCESS_KEY: secret
-  RETAIL_CART_PERSISTENCE_DYNAMODB_ENDPOINT: http://carts-dynamodb:8000
+  RETAIL_CART_PERSISTENCE_DYNAMODB_TABLE_NAME: "${CARTS_TABLE_NAME}"
+  RETAIL_CART_PERSISTENCE_DYNAMODB_CREATE_TABLE: "false"
+  RETAIL_CART_PERSISTENCE_DYNAMODB_ENDPOINT: "" #  This is AWS managed
+
 ---
 # Source: retail-store-sample-cart-chart/templates/dynamodb-service.yaml
 apiVersion: v1
@@ -344,7 +347,7 @@ spec:
           securityContext:
             capabilities:
               drop:
-              - ALL
+                - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
@@ -436,11 +439,12 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: orders-db
-data:
-  RETAIL_ORDERS_PERSISTENCE_USERNAME: "b3JkZXJz"
-  RETAIL_ORDERS_PERSISTENCE_PASSWORD: "RVFhYmFHU0dsdzJlTDVzaA=="
+type: Opaque
+stringData:
+  RETAIL_ORDERS_PERSISTENCE_USERNAME: "${ORDERS_DB_USER}"
+  RETAIL_ORDERS_PERSISTENCE_PASSWORD: "${ORDERS_DB_PASSWORD}"
+
 ---
-# Source: retail-store-sample-orders-chart/templates/configmap.yml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -449,7 +453,7 @@ data:
   RETAIL_ORDERS_MESSAGING_PROVIDER: rabbitmq
   RETAIL_ORDERS_MESSAGING_RABBITMQ_ADDRESSES: orders-rabbitmq:5672
   RETAIL_ORDERS_PERSISTENCE_PROVIDER: postgres
-  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: orders-postgresql:5432
+  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: "${ORDERS_DB_HOST}:${ORDERS_DB_PORT}"
   RETAIL_ORDERS_PERSISTENCE_NAME: orders
 ---
 # Source: retail-store-sample-orders-chart/templates/postgresql-service.yaml
@@ -585,7 +589,7 @@ spec:
           securityContext:
             capabilities:
               drop:
-              - ALL
+                - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
@@ -670,8 +674,8 @@ spec:
               containerPort: 5432
               protocol: TCP
       volumes:
-      - name: data
-        emptyDir: {}
+        - name: data
+          emptyDir: {}
 ---
 # Source: retail-store-sample-orders-chart/templates/rabbitmq-statefulset.yaml
 apiVersion: apps/v1
@@ -707,18 +711,18 @@ spec:
           image: "public.ecr.aws/docker/library/rabbitmq:3-management"
           imagePullPolicy: IfNotPresent
           ports:
-          - name: amqp
-            containerPort: 5672
-            protocol: TCP
-          - name: http
-            containerPort: 15672
-            protocol: TCP
+            - name: amqp
+              containerPort: 5672
+              protocol: TCP
+            - name: http
+              containerPort: 15672
+              protocol: TCP
           volumeMounts:
-          - name: data
-            mountPath: "/var/lib/rabbitmq/mnesia"
+            - name: data
+              mountPath: "/var/lib/rabbitmq/mnesia"
       volumes:
-      - name: data
-        emptyDir: {}
+        - name: data
+          emptyDir: {}
 
 ---
 # Source: retail-store-sample-checkout-chart/templates/serviceaccount.yaml
@@ -841,7 +845,7 @@ spec:
           securityContext:
             capabilities:
               drop:
-              - ALL
+                - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
@@ -1018,9 +1022,9 @@ spec:
           securityContext:
             capabilities:
               add:
-              - NET_BIND_SERVICE
+                - NET_BIND_SERVICE
               drop:
-              - ALL
+                - ALL
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
@@ -1048,3 +1052,30 @@ spec:
         - name: tmp-volume
           emptyDir:
             medium: Memory
+
+---
+# Ingress for UI via AWS Load Balancer Controller (ALB)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ui
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    # HTTP-only while waiting for ACM certificate issuance
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP":80}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:779846823004:certificate/17d222e8-c0c4-42f7-9e7b-d2906a8a56bb
+spec:
+  rules:
+    - host: innovatemart.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ui
+                port:
+                  number: 80

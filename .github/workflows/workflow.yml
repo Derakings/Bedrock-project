@@ -65,10 +65,28 @@ jobs:
                 kubectl get nodes
                 echo "Kubernetes access is configured........"
 
-            - name: Deploy the applications using Kubectl
+            - name: Get Terraform outputs
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-              run: | 
-                kubectl apply -f kubernetes.yaml
+              run: terraform output -json > tf_outputs.json
+
+            - name: Export DB credentials and patch manifests
+              if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+              run: |
+                export CATALOG_DB_USER=$(jq -r '.catalog_mysql_username.value' tf_outputs.json)
+                export CATALOG_DB_PASSWORD=$(jq -r '.catalog_mysql_password.value' tf_outputs.json)
+                export CATALOG_DB_HOST=$(jq -r '.catalog_mysql_endpoint.value' tf_outputs.json)
+                export CATALOG_DB_PORT=3306
+                export ORDERS_DB_USER=$(jq -r '.orders_pg_username.value' tf_outputs.json)
+                export ORDERS_DB_PASSWORD=$(jq -r '.orders_pg_password.value' tf_outputs.json)
+                export ORDERS_DB_HOST=$(jq -r '.orders_postgres_endpoint.value' tf_outputs.json)
+                export ORDERS_DB_PORT=5432
+                export CARTS_TABLE_NAME=$(jq -r '.carts_table_name.value' tf_outputs.json)
+                envsubst < kubernetes.yaml > kubernetes-patched.yaml
+
+            - name: Deploy to EKS
+              if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+              run: |
+                kubectl apply -f kubernetes-patched.yaml
                 kubectl get pods
                 echo "Applications are deployed successfully........"
 

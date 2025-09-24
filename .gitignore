@@ -3,3 +3,5 @@
 *.tfstate
 *.tfstate.backup
 commands.md.txt
+kubernetes.yaml.example
+*.log
