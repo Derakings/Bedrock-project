@@ -1,21 +1,14 @@
 terraform {
   backend "s3" {
-    bucket = "dera-state-lock-bucket"
+    bucket = "my-bucket"
+    key    = "terraform.tfstate"
     region = "us-east-1"
-    key = "innovatemart/s3/terraform.tfstate"
   }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.13"
-    }
-<<<<<<< HEAD
-    random = {
-=======
-   random = {
->>>>>>> fe60b1a (Changed configurations to http)
-      source  = "hashicorp/random"
-      version = "~> 3.5"
+      version = "~> 5.0"
     }
   }
 }
@@ -23,4 +16,5 @@ terraform {
 provider "aws" {
   region = "us-east-1"
 }
+
 
