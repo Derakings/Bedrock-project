@@ -9,7 +9,11 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.13"
     }
+<<<<<<< HEAD
     random = {
+=======
+   random = {
+>>>>>>> fe60b1a (Changed configurations to http)
       source  = "hashicorp/random"
       version = "~> 3.5"
     }
