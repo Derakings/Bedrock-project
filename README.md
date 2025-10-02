@@ -17,22 +17,18 @@ Once deployed, the UI service is exposed via an AWS Application Load Balancer (A
 ```
 kubectl get svc ui
 ```
-or
-```
-kubectl get ingress ui-ingress
-```
-The output will show a DNS name (e.g., `xxxx.elb.amazonaws.com`). Open this in your browser to access the app.
+The output will show a DNS name (http://ab8aa40c592a54b238b78768c4ffd0f3-1839041087.us-east-1.elb.amazonaws.com/). Open this in your browser to access the app.
 
 ## Developer IAM User & Kubeconfig Instructions
 
 ### IAM User Credentials
 - Username: `innocent-dev`
-- Password: Set manually in AWS Console (IAM > Users > innocent-dev > Security credentials > Manage Console access)
+- Password: Already provided
 - Access Key/Secret: Managed via AWS Console or GitHub Secrets for CI/CD
 
 ### Kubeconfig Setup (Read-Only Access)
 1. Ensure the IAM user has the correct EKS access policy (AmazonEKSAdminViewPolicy) for namespace `default`.
-2. On the developer's machine, configure AWS CLI with the IAM user's credentials:
+2. On the developer's CLI, configure AWS CLI with the IAM user's credentials:
   ```
   aws configure
   # Enter access key, secret key, region
@@ -47,11 +43,6 @@ The output will show a DNS name (e.g., `xxxx.elb.amazonaws.com`). Open this in y
   kubectl describe pod <pod-name> -n default
   kubectl get svc -n default
   ```
-
-## Notes
-- All secrets and credentials are managed securely via AWS SSM and GitHub Secrets.
-- No sensitive values are hardcoded in the codebase.
-- For production, always use secure secret injection and least-privilege IAM policies.
 
 # InnovateMart Retail Store Sample App
 
@@ -68,20 +59,6 @@ This project provisions a secure, production-ready AWS infrastructure and CI/CD 
 - **CI/CD Pipeline**: GitHub Actions automates provisioning and deployment
 
 ## Architecture Diagram
-```
-AWS Cloud
-│
-├── VPC (Public & Private Subnets)
-│   ├── EKS Cluster
-│   │   ├── Node Groups
-│   │   ├── Kubernetes Services & Deployments
-│   │   └── ALB Ingress (UI)
-│   ├── RDS MySQL (catalog)
-│   ├── RDS PostgreSQL (orders)
-│   └── DynamoDB (carts)
-│
-└── IAM Users/Roles
-```
 
 ## Setup & Deployment
 
@@ -93,7 +70,7 @@ AWS Cloud
 ### Steps
 1. **Clone the repository:**
   ```
-  git clone <repo-url>
+  git clone (https://github.com/Derakings/Bedrock-project.git)
   cd Bedrock-project
   ```
 2. **Configure AWS credentials:**
@@ -139,15 +116,15 @@ Open the DNS name in your browser to access the app.
   ```
 
 ## Security & Best Practices
-- All secrets and credentials are managed via AWS SSM Parameter Store and GitHub Secrets
-- No hardcoded secrets in codebase or manifests
+- All secrets and credentials are managed by GitHub Secrets
 - IAM policies follow least-privilege principle
 - Use secure secret injection for all sensitive values
 
 ## Troubleshooting
-- **Pods CrashLoopBackOff:** Check logs with `kubectl logs <pod-name>` and verify secrets/configmaps
+- **Pods CrashLoopBackOff:** Check logs with `kubectl logs pod-name` and verify secrets/configmaps
 - **Terraform output missing:** Ensure output blocks exist and resources are created
-- **EKS API unreachable:** Check cluster status, update kubeconfig, verify network/DNS
+- **EKS API unreachable:** Check cluster status, update kubeconfig, verify network/DNS (nslookup DNS server)
 
-## Contact & Support
-For questions or issues, open a GitHub issue or contact the project maintainer.
+#UI screenshots
+
+
