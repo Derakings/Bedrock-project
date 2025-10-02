@@ -60,7 +60,7 @@ jobs:
             - name: Update kubeconfig
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
               run: |
-                aws eks update-kubeconfig --name innovatemart-eks-cluster --region ${{ env.AWS_REGION}}
+                aws eks update-kubeconfig --name innovatemart-cluster --region ${{ env.AWS_REGION}}
                 sleep 60
                 kubectl get nodes
                 echo "Kubernetes access is configured........"
