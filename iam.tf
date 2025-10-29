@@ -25,7 +25,7 @@ resource "aws_iam_user_policy" "policy" {
 
 
 resource "aws_iam_user_login_profile" "developer" {
-  user    = aws_iam_user.developer.name
+  user = aws_iam_user.developer.name
   # pgp_key = "keybase:developer"
 }
 
