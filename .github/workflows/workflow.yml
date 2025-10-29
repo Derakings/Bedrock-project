@@ -65,10 +65,30 @@ jobs:
                 kubectl get nodes
                 echo "Kubernetes access is configured........"
 
+            - name: Get RDS Endpoints from Terraform
+              if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+              run: |
+                CATALOG_MYSQL_ENDPOINT=$(terraform output -raw catalog_mysql_endpoint)
+                ORDERS_POSTGRESQL_ENDPOINT=$(terraform output -raw orders_postgresql_endpoint)
+                echo "CATALOG_MYSQL_ENDPOINT=$CATALOG_MYSQL_ENDPOINT" >> $GITHUB_ENV
+                echo "ORDERS_POSTGRESQL_ENDPOINT=$ORDERS_POSTGRESQL_ENDPOINT" >> $GITHUB_ENV
+                echo "Catalog MySQL RDS Endpoint: $CATALOG_MYSQL_ENDPOINT"
+                echo "Orders PostgreSQL RDS Endpoint: $ORDERS_POSTGRESQL_ENDPOINT"
+
+            - name: Patch Kubernetes manifests with RDS endpoints
+              if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+              run: |
+                sed -i "s|CATALOG_MYSQL_RDS_ENDPOINT|${{ env.CATALOG_MYSQL_ENDPOINT }}|g" kubernetes.yaml
+                sed -i "s|ORDERS_POSTGRESQL_RDS_ENDPOINT|${{ env.ORDERS_POSTGRESQL_ENDPOINT }}|g" kubernetes.yaml
+                echo "Kubernetes manifests patched with RDS endpoints"
+                grep -A 2 "RETAIL_CATALOG_PERSISTENCE_ENDPOINT" kubernetes.yaml
+                grep -A 2 "RETAIL_ORDERS_PERSISTENCE_ENDPOINT" kubernetes.yaml
+
             - name: Deploy the applications using Kubectl
               if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
               run: | 
                 kubectl apply -f kubernetes.yaml
                 kubectl get pods
                 echo "Applications are deployed successfully........"
+
 

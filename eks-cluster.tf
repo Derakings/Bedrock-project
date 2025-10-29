@@ -6,21 +6,21 @@ module "eks" {
   kubernetes_version = "1.33"
 
   addons = {
-    coredns                = {
-        before_compute = true
-        most_recent = true
+    coredns = {
+      before_compute = true
+      most_recent    = true
     }
-     
+
     eks-pod-identity-agent = {
       before_compute = true
     }
-    kube-proxy             = {}
-    vpc-cni                = {
+    kube-proxy = {}
+    vpc-cni = {
       before_compute = true
     }
-    aws-ebs-csi-driver     = {
-        most_recent = true
-        service_account_role_arn = "arn:aws:iam::779846823004:role/AmazonEKS_EBS_CSI_DriverRole"
+    aws-ebs-csi-driver = {
+      most_recent              = true
+      service_account_role_arn = "arn:aws:iam::779846823004:role/AmazonEKS_EBS_CSI_DriverRole"
     }
   }
 
@@ -32,17 +32,17 @@ module "eks" {
 
 
   endpoint_public_access = true
-  enable_irsa = true
-#   enable_cluster_creator_admin_permissions = true
+  enable_irsa            = true
+  #   enable_cluster_creator_admin_permissions = true
 
 
-  vpc_id                   = module.vpc.vpc_id
-  subnet_ids               = module.vpc.private_subnets
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
 
 
   eks_managed_node_groups = {
     innovatemart-nodegroup = {
- #     ami_type       = "AL2023_x86_64_STANDARD"
+      #     ami_type       = "AL2023_x86_64_STANDARD"
       instance_types = ["t3.medium"]
 
       min_size     = 1
@@ -53,40 +53,40 @@ module "eks" {
 
   tags = {
     "kubernetes.io/cluster/${var.cluster-name}" = "shared"
-    Name = var.cluster-name
-    Environment = "dev"
-    Terraform   = "production"
+    Name                                        = var.cluster-name
+    Environment                                 = "dev"
+    Terraform                                   = "production"
   }
 
-access_entries = {
+  access_entries = {
     admin_user = {
-        kubernetes_groups = []
-      principal_arn = "arn:aws:iam::779846823004:user/Derakings-admin"
+      kubernetes_groups = []
+      principal_arn     = "arn:aws:iam::779846823004:user/Derakings-admin"
 
       policy_associations = {
         admin_policy = {
-          policy_arn =  "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
           access_scope = {
-            type       = "cluster"
+            type = "cluster"
           }
         }
       }
     }
     innocent-dev = {
-        kubernetes_groups = []
-      principal_arn = "arn:aws:iam::779846823004:user/innocent-dev"
+      kubernetes_groups = []
+      principal_arn     = "arn:aws:iam::779846823004:user/innocent-dev"
 
       policy_associations = {
         view = {
-          policy_arn =  "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminViewPolicy"
+          policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSAdminViewPolicy"
           access_scope = {
-            type       = "cluster"
+            type = "cluster"
           }
         }
       }
 
-      }
     }
+  }
 }
 
 

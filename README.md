@@ -6,7 +6,7 @@ This project provisions a secure, production-ready AWS infrastructure for the In
 - **VPC** with public/private subnets
 - **Amazon EKS** cluster with managed node groups
 - **IAM roles/policies** for cluster, nodes, and developer access
-- **Managed AWS databases**: RDS MySQL (catalog), RDS PostgreSQL (orders), DynamoDB (carts)
+- **Managed AWS databases**: Amazon RDS MySQL (catalog), Amazon RDS PostgreSQL (orders), DynamoDB (carts)
 - **Kubernetes manifests** for all microservices and dependencies
 - **ALB Ingress** for UI service exposure
 - **CI/CD pipeline** via GitHub Actions for automated provisioning and deployment
@@ -53,7 +53,7 @@ This project provisions a secure, production-ready AWS infrastructure and CI/CD 
 - **VPC**: Custom AWS VPC with public and private subnets
 - **Amazon EKS**: Managed Kubernetes cluster with node groups
 - **IAM**: Roles and policies for cluster, nodes, and developer access
-- **Managed Databases**: RDS MySQL (catalog), RDS PostgreSQL (orders), DynamoDB (carts)
+- **Managed Databases**: Amazon RDS MySQL (catalog), Amazon RDS PostgreSQL (orders), DynamoDB (carts)
 - **Kubernetes Manifests**: Deploys all microservices and dependencies
 - **ALB Ingress**: Exposes the UI service via AWS Application Load Balancer
 - **CI/CD Pipeline**: GitHub Actions automates provisioning and deployment

@@ -28,33 +28,8 @@ metadata:
   name: catalog
 data:
   RETAIL_CATALOG_PERSISTENCE_PROVIDER: mysql
-  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: catalog-mysql:3306
+  RETAIL_CATALOG_PERSISTENCE_ENDPOINT: CATALOG_MYSQL_RDS_ENDPOINT
   RETAIL_CATALOG_PERSISTENCE_DB_NAME: catalog
----
-# Source: retail-store-sample-catalog-chart/templates/mysql-service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: catalog-mysql
-  labels:
-    helm.sh/chart: catalog-1.2.4
-    app.kubernetes.io/name: catalog
-    app.kubernetes.io/instance: catalog
-    app.kubernetes.io/component: mysql
-    app.kubernetes.io/owner: retail-store-sample
-    app.kubernetes.io/managed-by: Helm
-spec:
-  type: ClusterIP
-  ports:
-    - port: 3306
-      targetPort: mysql
-      protocol: TCP
-      name: mysql
-  selector:
-    app.kubernetes.io/name: catalog
-    app.kubernetes.io/instance: catalog
-    app.kubernetes.io/component: mysql
-    app.kubernetes.io/owner: retail-store-sample
 ---
 # Source: retail-store-sample-catalog-chart/templates/service.yaml
 apiVersion: v1
@@ -158,65 +133,6 @@ spec:
           emptyDir:
             medium: Memory
 ---
-# Source: retail-store-sample-catalog-chart/templates/mysql-statefulset.yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: catalog-mysql
-  labels:
-    helm.sh/chart: catalog-1.2.4
-    app.kubernetes.io/name: catalog
-    app.kubernetes.io/instance: catalog
-    app.kubernetes.io/component: mysql
-    app.kubernetes.io/owner: retail-store-sample
-    app.kubernetes.io/managed-by: Helm
-spec:
-  replicas: 1
-  serviceName: catalog-mysql
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: catalog
-      app.kubernetes.io/instance: catalog
-      app.kubernetes.io/component: mysql
-      app.kubernetes.io/owner: retail-store-sample
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: catalog
-        app.kubernetes.io/instance: catalog
-        app.kubernetes.io/component: mysql
-        app.kubernetes.io/owner: retail-store-sample
-    spec:
-      containers:
-        - name: mysql
-          image: "public.ecr.aws/docker/library/mysql:8.0"
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: my-secret-pw
-            - name: MYSQL_DATABASE
-              value: catalog
-            - name: MYSQL_USER
-              valueFrom:
-                secretKeyRef:
-                  name: catalog-db
-                  key: RETAIL_CATALOG_PERSISTENCE_USER
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: catalog-db
-                  key: RETAIL_CATALOG_PERSISTENCE_PASSWORD
-          volumeMounts:
-            - name: data
-              mountPath: /var/lib/mysql
-          ports:
-            - name: mysql
-              containerPort: 3306
-              protocol: TCP
-      volumes:
-      - name: data
-        emptyDir: {}
-
 ---
 # Source: retail-store-sample-cart-chart/templates/serviceaccount.yaml
 apiVersion: v1
@@ -449,33 +365,8 @@ data:
   RETAIL_ORDERS_MESSAGING_PROVIDER: rabbitmq
   RETAIL_ORDERS_MESSAGING_RABBITMQ_ADDRESSES: orders-rabbitmq:5672
   RETAIL_ORDERS_PERSISTENCE_PROVIDER: postgres
-  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: orders-postgresql:5432
+  RETAIL_ORDERS_PERSISTENCE_ENDPOINT: ORDERS_POSTGRESQL_RDS_ENDPOINT
   RETAIL_ORDERS_PERSISTENCE_NAME: orders
----
-# Source: retail-store-sample-orders-chart/templates/postgresql-service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: orders-postgresql
-  labels:
-    helm.sh/chart: orders-1.2.4
-    app.kubernetes.io/name: orders
-    app.kubernetes.io/instance: orders
-    app.kubernetes.io/component: postgresql
-    app.kubernetes.io/owner: retail-store-sample
-    app.kubernetes.io/managed-by: Helm
-spec:
-  type: ClusterIP
-  ports:
-    - port: 5432
-      targetPort: postgresql
-      protocol: TCP
-      name: postgresql
-  selector:
-    app.kubernetes.io/name: orders
-    app.kubernetes.io/instance: orders
-    app.kubernetes.io/component: postgresql
-    app.kubernetes.io/owner: retail-store-sample
 ---
 # Source: retail-store-sample-orders-chart/templates/rabbitmq-service.yaml
 apiVersion: v1
@@ -614,64 +505,6 @@ spec:
           emptyDir:
             medium: Memory
 ---
-# Source: retail-store-sample-orders-chart/templates/postgresql-statefulset.yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: orders-postgresql
-  labels:
-    helm.sh/chart: orders-1.2.4
-    app.kubernetes.io/name: orders
-    app.kubernetes.io/instance: orders
-    app.kubernetes.io/component: postgresql
-    app.kubernetes.io/owner: retail-store-sample
-    app.kubernetes.io/managed-by: Helm
-spec:
-  replicas: 1
-  serviceName: orders-postgresql
-  selector:
-    matchLabels:
-      app.kubernetes.io/name: orders
-      app.kubernetes.io/instance: orders
-      app.kubernetes.io/component: postgresql
-      app.kubernetes.io/owner: retail-store-sample
-  template:
-    metadata:
-      labels:
-        app.kubernetes.io/name: orders
-        app.kubernetes.io/instance: orders
-        app.kubernetes.io/component: postgresql
-        app.kubernetes.io/owner: retail-store-sample
-    spec:
-      containers:
-        - name: postgresql
-          image: "public.ecr.aws/docker/library/postgres:16.1"
-          imagePullPolicy: IfNotPresent
-          env:
-            - name: POSTGRES_DB
-              value: orders
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: orders-db
-                  key: RETAIL_ORDERS_PERSISTENCE_USERNAME
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: orders-db
-                  key: RETAIL_ORDERS_PERSISTENCE_PASSWORD
-            - name: PGDATA
-              value: /data/pgdata
-          volumeMounts:
-            - name: data
-              mountPath: /data
-          ports:
-            - name: postgresql
-              containerPort: 5432
-              protocol: TCP
-      volumes:
-      - name: data
-        emptyDir: {}
 ---
 # Source: retail-store-sample-orders-chart/templates/rabbitmq-statefulset.yaml
 apiVersion: apps/v1

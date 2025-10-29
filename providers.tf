@@ -2,7 +2,7 @@ terraform {
   backend "s3" {
     bucket = "dera-state-lock-bucket"
     region = "us-east-1"
-    key = "innovatemart/s3/terraform.tfstate"
+    key    = "innovatemart/s3/terraform.tfstate"
   }
   required_providers {
     aws = {
